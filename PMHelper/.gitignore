@@ -1,0 +1,8 @@
+#过滤class文件
+*.class
+*.property
+*.properties
+
+#过滤临时文件夹
+bin/
+
