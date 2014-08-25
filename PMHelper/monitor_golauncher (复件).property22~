@@ -1,0 +1,32 @@
+#
+#Thu Aug 21 11:26:42 CST 2014
+debug=true
+svn_config_comment=******************
+svnmonitor_run=false
+svn_key_pathroot=https\://svn.3g.net.cn/svn/GTP-GOLauncherEX/GOLauncherEX_Branches/GOLauncherEX_v5.03/GOLauncherEX_Main
+svn_key_username=huyong
+svn_key_passwd=encode_ZHFIRzcxMA\=\=\n
+svn_key_mail_receivers=huyong@sungymobile.com,wangzhuobin@sungymobile.com,yangguanxiang@sungymobile.com,
+svn_startverison=125136
+svn_period_min=3
+svn_monitor_author=wanglong,caoyaming,chengchongji,fanwenda,weijianyang
+svn_monitor_file=ScreenDataModel.java,StatisticsManager.java,MessageManager.java,WallpaperControler.java,ScheduleTaskHandler.java,DiyScheduler.java,GoLauncher.java,AppDataEngine.java,DatabaseHelper.java
+svn_monitor_pkg=com.jiubang.ggheart.launcher,com.jiubang.shell.appdrawer,com.jiubang.ggheart.data
+svn_mail_cc_receivers=huyong@sungymobile.com,aoriming@sungymobile.com,chenchongji@sungymobile.com,wanglong@sungymobile.com,nixiaozhen@sungymobile.com,liuxinyang@sungymobile.com,
+svn_mail_subject=GO\u00E6\u00A1\u008C\u00E9\u009D\u00A2\u00E9\u00A1\u00B9\u00E7\u009B\u00AESVN\u00E6\u009B\u00B4\u00E6\u0096\u00B0\u00E6\u008F\u0090\u00E9\u0086\u0092
+svn_mail_com_address=@sungymobile.com
+mail_config_comment=******************
+mail_key_host=mail.3g.net.cn
+mail_key_user=huyong@sungymobile.com
+mail_key_passwd=encode_ZHFIRzcxMA\=\=\n
+mail_port=25
+mail_validate=true
+mail_show_from_name=GO桌面项目SVN更新提醒
+findbug_comment=config for findbugs
+findbugs_run=false
+findbugs_key_ant_findbugs=sh /usr/bin/ant -buildfile /home/huyong/workspace/work5/SourceCode/GOLauncherEV_ui5.0New/GOLauncherEX_Main/build-changed-code-findbugs.xml
+findbug_project_workspace=/home/huyong/workspace/work5/SourceCode/GOLauncherEV_ui5.0New/GOLauncherEX_Main
+findbug_mail_subject=GOLauncher-FindBugs-通知中心
+findbug_mail_receivers=huyong@sungymobile.com
+findbug_mail_ccreivers=wangzhuobin@sungymobile.com,yangguanxiang@sungymobile.com,aoriming@sungymobile.com,chenchongji@sungymobile.com,wanglong@sungymobile.com,nixiaozhen@sungymobile.com,liuxinyang@sungymobile.com,
+findbug_mail_com_address=@sungymobile.com

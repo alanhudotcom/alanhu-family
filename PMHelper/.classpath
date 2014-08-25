@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/antlr-runtime-3.4.jar"/>
+	<classpathentry kind="lib" path="lib/javax.mail.jar"/>
+	<classpathentry kind="lib" path="lib/sequence-library-1.0.3.jar"/>
+	<classpathentry kind="lib" path="lib/sqljet-1.1.10.jar"/>
+	<classpathentry kind="lib" path="lib/svnkit-1.8.6.jar" sourcepath="/home/huyong/workspace/work5/SourceCode/Project/OPENSOURCE/svnkit-1.8.6.src/svnkit/src"/>
+	<classpathentry kind="lib" path="lib/svnkit-cli-1.8.6.jar"/>
+	<classpathentry kind="lib" path="lib/svnkit-javahl16-1.8.6.jar"/>
+	<classpathentry kind="lib" path="lib/trilead-ssh2-1.0.0-build217.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

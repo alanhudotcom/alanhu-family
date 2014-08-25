@@ -1,0 +1,149 @@
+ <project name="analyze_asm_util" default="findbugs">
+     
+    <!-- findbugs task definition -->
+    <property name="findbugs.home" value="/usr/android-sdks/tools/findbugs-2.0.3" />
+    <property name="jvmargs" value="-Xms1068m -Xmx2048m -Xmn1024m" />
+    
+    <property name="changed-file-src" value="./changedfiles/src" />
+    <property name="changed-file-bin" value="./changedfiles/bin" />
+    <property name="changed-file-ref-class" value="./bin" />
+    
+	<property name="findbugs-out-file" value="./changedfiles/findbugs/out.xml" />
+	<property name="findbugs-report-html" value="./changedfiles/report.html" />
+	<property name="findbugs-dbinfo-real" value="./changedfiles/tmp-bug-dbinfo-really.xml" />
+	<property name="findbugs-dbinfo-history" value="./changedfiles/tmp-bug-dbinfo-history.xml" />
+	<property name="findbugs-result-txt" value="./changedfiles/result.txt" />
+   
+    <path id="findbugs.lib">
+      <fileset dir="${findbugs.home}/lib">
+         <include name="findbugs-ant.jar"/>
+      </fileset>
+   </path>
+   
+   <taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask">
+      <classpath refid="findbugs.lib" />
+   </taskdef>
+   
+   <taskdef name="computeBugHistory" classname="edu.umd.cs.findbugs.anttask.ComputeBugHistoryTask">
+      <classpath refid="findbugs.lib" />
+   </taskdef>
+
+   <taskdef name="setBugDatabaseInfo" classname="edu.umd.cs.findbugs.anttask.SetBugDatabaseInfoTask">
+      <classpath refid="findbugs.lib" />
+   </taskdef>
+
+   <taskdef name="mineBugHistory" classname="edu.umd.cs.findbugs.anttask.MineBugHistoryTask">
+      <classpath refid="findbugs.lib" />
+   </taskdef>
+   
+   <taskdef name="convertXmlToText" classname="edu.umd.cs.findbugs.anttask.ConvertXmlToTextTask">
+	  <classpath refid="findbugs.lib" />
+   </taskdef>
+    
+	<target name="compile-changed-file">
+     	<echo>compiled changed files</echo>
+	    <path id="project.ref.libs">
+            <fileset dir="lib">
+                <include name="*.jar" />
+            </fileset>
+        </path>
+        <javac destdir="${changed-file-bin}" bootclasspath="${android-jar}" encoding="utf-8" debug="true" debuglevel="source,lines,vars" >
+            <src path="${changed-file-src}" />
+            <classpath location="${changed-file-ref-class}" />
+            <classpath refid="project.ref.libs" />
+        </javac>   
+    </target>
+    
+   <!-- findbugs task definition -->
+   <target name="findbugs" depends="compile-changed-file">
+      <antcall target="analyze" />
+      <!-- <antcall target="mine" /> -->
+   </target>
+
+   <!-- analyze task -->
+   <target name="analyze">
+      <!-- run findbugs against asm-util -->
+      <findbugs home="${findbugs.home}"
+                output="xml:withMessages"
+                timeout="90000000"
+                reportLevel="low"
+                effort="max"
+                adjustExperimental="true"
+                jvmargs="${jvmargs}"
+                failOnError="true"
+                outputFile="${findbugs-out-file}"
+                >
+         <class location="${changed-file-bin}" />
+      </findbugs>
+      
+      <convertXmlToText
+          format="html:default.xsl"
+          home="${findbugs.home}"
+          input="${findbugs-out-file}"
+          output="${findbugs-report-html}" >
+      </convertXmlToText>
+      
+   </target>
+
+   <target name="mine">
+
+       	<tstamp>
+       		<format property="CurrentTime" pattern="yyyyMMdd-HH-MM" locale="en"/>
+    	</tstamp>
+       
+      <!-- Set info to the latest analysis -->
+      <setBugDatabaseInfo home="${findbugs.home}"
+                            withMessages="true"
+                            name="${CurrentTime}"
+                            input="${findbugs-out-file}"
+                            output="${findbugs-dbinfo-real}"/>
+
+      <!-- Checking if history file already exists (out-hist.xml) -->
+      <condition property="mining.historyfile.available">
+         <available file="${findbugs-dbinfo-history}"/>
+      </condition>
+      <condition property="mining.historyfile.notavailable">
+         <not>
+            <available file="${findbugs-dbinfo-history}"/>
+         </not>
+      </condition>
+
+      <!-- this target is executed if the history file do not exist (first run) -->
+      <antcall target="history-init">
+        <param name="data.file" value="${findbugs-dbinfo-real}" />
+        <param name="hist.file" value="${findbugs-dbinfo-history}" />
+      </antcall>
+      <!-- else this one is executed -->
+      <antcall target="history">
+        <param name="data.file" value="${findbugs-dbinfo-real}" />
+        <param name="hist.file" value="${findbugs-dbinfo-history}" />
+        <param name="hist.summary.file" value="${findbugs-result-txt}" />
+      </antcall>
+   </target>
+
+   <!-- Initializing history file -->
+   <target name="history-init" if="mining.historyfile.notavailable">
+      <copy file="${data.file}" tofile="${hist.file}" />
+   </target>
+
+   <!-- Computing bug history -->
+   <target name="history" if="mining.historyfile.available">
+      <!-- Merging ${data.file} into ${hist.file} -->
+      <computeBugHistory home="${findbugs.home}"
+          					withMessages="true"
+                           	output="${hist.file}">
+            <dataFile name="${hist.file}"/>
+            <dataFile name="${data.file}"/>
+      </computeBugHistory>
+
+      <!-- Compute history into ${hist.summary.file} -->
+      <mineBugHistory home="${findbugs.home}"
+                        formatDates="true"
+                      	noTabs="true"
+                      	showNewBug="true"
+                        input="${hist.file}"
+                        output="${hist.summary.file}"/>
+   </target>
+
+</project>
+
