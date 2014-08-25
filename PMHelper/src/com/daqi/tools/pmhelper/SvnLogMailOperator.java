@@ -8,19 +8,21 @@ import java.util.Set;
 import org.tmatesoft.svn.core.SVNLogEntry;
 import org.tmatesoft.svn.core.SVNLogEntryPath;
 
+import com.daqi.tools.core.AbsSvnLogOperator;
 import com.daqi.tools.mailsender.SimpleMailSender;
 import com.daqi.tools.svnmonitor.SvnConfigLoader;
 import com.daqi.tools.svnmonitor.SvnLogHandler.ISvnLogChangedObserver;
 import com.daqi.tools.toolunit.Converter;
 import com.daqi.tools.toolunit.Logger;
 
-public class SvnLogMailOperator {
+public class SvnLogMailOperator extends AbsSvnLogOperator {
 
 	private SimpleMailSender mMailSender;
 	
 	private ArrayList<SvnChangedInfoBean> mChangedInfoList;
 	
 	private boolean mMonitorNotRun = false;
+	
 	private ArrayList<String> mMonitorAuthors;
 	private ArrayList<String> mMonitorFiles;
 	private ArrayList<String> mMonitorPaths;
@@ -33,16 +35,18 @@ public class SvnLogMailOperator {
 		// TODO Auto-generated constructor stub
 		mMailSender = mailSender;
 		mChangedInfoList = new ArrayList<SvnChangedInfoBean>();
-		
 		loadConfig(configFile);
 	}
 	
-	public void notifyLogChanged(SvnChangedInfoBean bean) {
+	@Override
+	public void svnLogPrepare() {
 		// TODO Auto-generated method stub
-		mChangedInfoList.add(bean);
+		// Noting to do
 	}
-	
-	public void logChanged(SVNLogEntry logEntry) {
+
+	@Override
+	public void svnLogChanged(SVNLogEntry logEntry) {
+		// TODO Auto-generated method stub
 		if (mMonitorNotRun) {
 			return;
 		}
@@ -59,6 +63,12 @@ public class SvnLogMailOperator {
 		
 	}
 
+	@Override
+	public void svnLogFinish() {
+		// TODO Auto-generated method stub
+		sendMailLogInfo();
+	}
+	
 	private void loadConfig(String configFile) {
 		SvnConfigLoader configLoader = new SvnConfigLoader(configFile);
 		
@@ -166,7 +176,7 @@ public class SvnLogMailOperator {
 	}
 	
 	
-	public void sendMailLogInfo() {
+	private void sendMailLogInfo() {
 		// TODO Auto-generated method stub
 		if (mChangedInfoList.size() == 0) {
 			return;
@@ -310,7 +320,11 @@ public class SvnLogMailOperator {
 		
 	}
 	
-
+/**
+ * 内部类，简单数据封装
+ * @author huyong
+ *
+ */
 	public class SvnChangedInfoBean {
 		public int type;
 		public String author;
@@ -329,5 +343,5 @@ public class SvnLogMailOperator {
 			detail = commitDetail;
 		}
 	}
-	
+
 }

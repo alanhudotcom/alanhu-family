@@ -1,12 +1,8 @@
 package com.daqi.tools.svnmonitor;
 
-import java.util.Collection;
-import java.util.Set;
-
 import org.tmatesoft.svn.core.ISVNLogEntryHandler;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNLogEntry;
-import org.tmatesoft.svn.core.SVNLogEntryPath;
 
 import com.daqi.tools.toolunit.Logger;
 

@@ -4,10 +4,12 @@ import java.util.Date;
 import java.util.Properties;
 
 import javax.mail.Address;
+import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
+import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
@@ -25,8 +27,6 @@ public class SimpleMailSender  {
 
 	private Message mMailMessage;
 	private String mConfigFile;
-	
-	private String mDefaultMailSuffix;
 	
 	public SimpleMailSender(String configFile) {
 		mConfigFile = configFile;
@@ -170,6 +170,26 @@ public class SimpleMailSender  {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * 简单的内部类
+	 * @author huyong
+	 *
+	 */
+	public class SimpleAuthenticator extends Authenticator{  
+	    String userName=null;  
+	    String password=null;  
+	       
+	    public SimpleAuthenticator(String username, String password) {   
+	        this.userName = username;   
+	        this.password = password;   
+	    }   
+	    
+	    protected PasswordAuthentication getPasswordAuthentication(){  
+	        return new PasswordAuthentication(userName, password);  
+	    }  
+	}  
+	   
 	
 	public static void main(String[] args) {
 		new SimpleMailSender("monitor_golauncher.property").sendHtmlMail("subject", "content");

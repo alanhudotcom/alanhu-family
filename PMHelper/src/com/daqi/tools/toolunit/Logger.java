@@ -7,6 +7,8 @@ import java.util.Properties;
 
 import org.tmatesoft.svn.core.SVNErrorMessage;
 
+import com.daqi.tools.core.OrderProperties;
+
 public class Logger {
 	
 	public static boolean sIsDebug = true;
