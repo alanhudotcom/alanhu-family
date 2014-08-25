@@ -1,37 +1,38 @@
-项目管理过程中，有两个重要的问题。一个是项目进度的管理，一个是代码质量的管理。
+#
+#Thu Aug 21 13:45:27 CST 2014
+debug=true#日志总开关，控制是否输出过程中log日志
 
-这几天，我写了一个java的工具PMHelper，利用网上开放的各种API接口，实现svn/email/findbugs各工具的综合应用。
-PMHelper想要解决的问题：
-当某些同学有代码提交时，我想要快速了解，是否需要关注；
-当某个关键文件被修改时，我想要快速了解，是否正确；
-当某个新功能开发，某个包路径下的文件有被修改时，我想要快速了解，进度如何；
-当大家文件提交后，代码质量如何，是否通过了FindBugs的检测处理；
-可以利用它对团队中新人/关键功能开发者/关键文件修改等的及时反馈。
 
-PMHelper目前大体上分为三个模块，svn监控/邮件发送/FindBugs处理，各模块独立运作。后续，我们期望在代码质量上，引入更多。如PMD/CheckStyle，只要是开源的或提供有开发工具包，都可以集成进来。在未来，还期望可以将自动化集成测试结合起来，提交后，自动打包安装并进行单元测试。每个步骤都有可代替工具，来进行集成。
+svn_config_comment=#******************svn模块分隔行
+svnmonitor_run=true#svn监控开关，控制是否运行关键作者/文件/包的监控
+svn_key_pathroot=#工程svn地址
+svn_key_username=#svn登录帐号
+svn_key_passwd=#svn登录密码，运行后，会被加密保存处理。
+svn_key_mail_receivers=#邮件收件人，多个帐号用英文逗号隔开。
+svn_startverison=125163#开始监控svn版本号。
+svn_period_min=#svn监控间隔时长。
+svn_monitor_author=#关键作者，多个作者用英文逗号隔开。凡是关键作者提交的任意修改，均会有邮件通知。
+svn_monitor_file=#关键文件，多个文件用英文逗号隔开。用文件名即可，不用带路径。如ScheduleTaskHandler.java,DatabaseHelper.java
+svn_monitor_pkg=#关键包路径，多个包路径用英文逗号隔开。如com.package.tools.bitmap
+svn_mail_cc_receivers=#邮件抄送人，多个帐号用用英文逗号隔开。
+svn_mail_subject=#邮件主题，支持中文显示。但由于properties文件不支持中文保存，因此使用后，此处不能显示中文，不影响正常使用。
+svn_mail_com_address=#公司邮箱后缀名称，用于发送给由log信息中提取出的用户名所组成的账户。如@gmail.com
 
-下面是各模块的大概流程介绍：
-svn监控过程；
-svn监控，是利用已有的svnkit及系列相关开发工具包，对svn目录进行changlog检测。根据指定的时间间隔进行svn信息获取。将获取到的信息，与定制的作者/文件/文件路径等各元素进行比较，提取出感兴趣的log信息后，再通知给指定的用户群体。svn监控过程，内存占用很小，不会妨碍正常电脑使用。若设定间隔是10min，则一个脚本运行后，n个项目，则启动n个监控线程，定时10min获取一次log信息，资源占用较小。
 
-邮件发送过程；
-利用开放的javax.mail开发工具包，实现程序直接发送邮件的过程。由于是本机发送，该选项提供配置项较小，默认采用smtp协议。各人可根据需要，配置内网/外网帐号，对应提供端口号/是否需要验证等配置进行邮箱配置。
+mail_config_comment=#******************邮件模块分隔行
+mail_key_host=#发送邮件的邮箱服务器地址
+mail_key_user=#发送邮件所需账户
+mail_key_passwd=#发送邮件所需账户密码，运行后，会被加密保存处理。
+mail_port=#发送邮件所需端口号，默认是25，不用配置，若邮件发送有问题，可另行配置。
+mail_validate=#发送邮件是否需要验证，默认是true，不用配置，若邮件发送有问题，可另行配置。
+mail_show_from_name=#邮件发送人显示的名称
 
-FindBugs过程；
-Findbugs工具的原理，是将字节码与一组已有的缺陷模式集合进行对比从而发现可能的问题。操作对象是编译后的字节码文件，因此耗时相对较长。我们现有项目完整Findbugs检测需要3min左右（i3系列，4G内存），通过增量形式的检测，一般一次5-6个文件的提交，15s即可完成检测。同时，这个过程，提供了高度的定制化，各项目/各位同事/各台机器可以根据不同的情况，进行不同的配置。（自行学习FindBugs脚本编写过程）
-备注：原有的设计，是希望在每次项目打包结束过程，提供Findbugs处理，但现有项目太大，过程太长，且资源占用大，新生代内存空间几秒内暴涨至1G内存，后放弃。后续可以考虑单独拉一台电脑进行该项处理，并可以实现输出每周/每版本的bug对比效果图，进而进行项目质量监管。
 
-功能使用上，提供了如下的定制性：
-1.配置文件的密码进行加密，便于配置文件快速分享；
-2.对多个指定分支项目工程，进行监控，n个项目，n个配置文件，一次脚本运行；
-3.选择性配置监控，svn文件监控与Findbug监控互不干扰；
-4.各模块独立配置可选开关，可单独开启或关闭，并进行不同的接收者/抄送者配置；
-
-期望提供给大家的是，每个人都会有根据自身不同的需求进行配置，每个人的电脑既是客户端，又是服务器端。既可以推送信息，又可以接收指定信息。
-团队中使用的越多，监控过程越细致，单机运作压力也就越小。
-
-FindBugs的结果，各团队根据需要，可以列入KPI考核计划中去。
-工具只是辅助，更多还是要大家去使用，去监管。
-
-使用办法：
-将PMHelper1.0.jar或脚本与property放在一个目录下，剩下的工作，全部在property中配置即可。注意property的命名规则为，以monitor_为前缀，以property为后缀。
+findbug_comment=#**********************config for findbugs
+findbugs_run=false#findbugs开关，控制是否需要运行findbugs处理。
+findbugs_key_ant_findbugs=#运行findbugs所需执行的脚本路径及文件，如sh /usr/bin/ant -buildfile build-changed-code-findbugs.xml
+findbug_project_workspace=#运行FindBugs所需的本地工程目录。注意，监测到svn修改后的文件，会从svn上checkout下来当前版本的修改文件，然后依赖该目录下的bin目录中，已经编译好的各class文件进行编译。
+findbug_mail_subject=#FindBugs检测处理后发送结果报告的邮件标题。
+findbug_mail_receivers=#FindBugs检测处理后发送结果报告的邮件收件人。
+findbug_mail_ccreivers=#FindBugs检测处理后发送结果报告的邮件抄送人。
+findbug_mail_com_address=#FindBugs检测处理后发送结果报告的直接作者的邮件地址后缀，如@gmail.com。则当监测到用户有svn提交后，svn-long只能提取出账户名称huyong，然后才能将Findbugs的结果报告发送到账户huyong@gmail.com的邮箱中。
