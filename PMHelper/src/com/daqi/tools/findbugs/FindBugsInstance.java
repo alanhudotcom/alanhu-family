@@ -12,11 +12,11 @@ import com.daqi.tools.toolunit.Logger;
 
 public class FindBugsInstance {
 	
-	private String mRootWorkspace;
+//	private String mRootWorkspace;
 	private String mProjectWorkspace;
-	private String mSrc;
-	private String mBin;
-	private String mFindbugs;
+	private String mFindbugsSrc;
+	private String mFindbugsBin;
+	private String mFindbugsTmpFolder;
 	private String mFindbugsReports;
 	
 	private String mAntFindbugs;
@@ -35,19 +35,18 @@ public class FindBugsInstance {
 		mAntFindbugs = configLoader.getProperty(FindbugsConfigLoader.FINDBUG_KEY_ANT);
 		 
 		mProjectWorkspace = configLoader.getProperty(FindbugsConfigLoader.FINDBUG_PROJECT_WORKSPACE);
-		mRootWorkspace = mProjectWorkspace;
 	}
 
 	private void initWorkspace() {
-		String rootPath = mRootWorkspace + "/changedfiles/";
-		mSrc = rootPath + "src/";
-		mBin = rootPath + "bin/";
-		mFindbugs = rootPath + "findbugs/";
+		String rootPath = mProjectWorkspace + "/changedfiles/";
+		mFindbugsSrc = rootPath + "src/";
+		mFindbugsBin = rootPath + "bin/";
+		mFindbugsTmpFolder = rootPath + "findbugs/";
 		mFindbugsReports = rootPath + "report.html";
-		FileUtils.resetDir(mSrc);
-		FileUtils.resetDir(mBin);
-		FileUtils.resetDir(mFindbugs);
-		Logger.println("initWorkspace for " + mSrc + ", " + mBin);
+		FileUtils.resetDir(mFindbugsSrc);
+		FileUtils.resetDir(mFindbugsBin);
+		FileUtils.resetDir(mFindbugsTmpFolder);
+		Logger.println("initWorkspace for " + mFindbugsSrc + ", " + mFindbugsBin);
 	}
 
 	private void copyChangedFileFromLocal(String path) {
@@ -59,43 +58,63 @@ public class FindBugsInstance {
 			
 			int fileIndex = changedFile.lastIndexOf("/");
 			String changedFileName = changedFile.substring(fileIndex + 1);
-			String fileDest = mSrc + changedFileName;
+			String fileDest = mFindbugsSrc + changedFileName;
 			Logger.println("FindBugs copy changedfile = from " + fileSrc + ", to " + fileDest);
 			FileUtils.copyFile(fileSrc, fileDest);
 		}
 	}
 	
 	private void copyChangedFilesFromSvn(String changedPath, long revision) {
-		if (changedPath.endsWith(".java")) {
-			// 仅仅导出修改的java文件即可
-			SVNUtil.exportSingleFile(changedPath, mSrc, revision);
-		}
+		
+		// 仅仅导出修改的java文件即可
+		
 	}
 	
 	public void clearFindBugsFile() {
 		//更新本地bin目录下的class文件
-		String tmpChangedBin = mBin.substring(0, mBin.length() - 1);
+		String tmpChangedBin = mFindbugsBin.substring(0, mFindbugsBin.length() - 1);
 		FileUtils.copyDir(tmpChangedBin, mProjectWorkspace + "/bin/classes");
-		FileUtils.resetDir(mSrc);
-		FileUtils.resetDir(mBin);
-		FileUtils.resetDir(mFindbugs);
+		FileUtils.resetDir(mFindbugsSrc);
+		FileUtils.resetDir(mFindbugsBin);
+		FileUtils.resetDir(mFindbugsTmpFolder);
 //		FileUtils.delFile(mFindbugsReports);
 	}
 	
-	public void handleChangedFile(Set<String> filePath, long revision) {
+	public boolean handleChangedFile(Set<String> filePath, long revision) {
 		Logger.println("==FindBugs begin to logchanged");
-		
+		boolean result = true;
 		//1.从svn中拷贝修改的文件
 		for (String path : filePath) {
-//			copyChangedFilesFromLocal(path);
-			copyChangedFilesFromSvn(path, revision);
-		}
-		if (new File(mSrc).list().length == 0) {
-			//no file in srcret
-			Logger.println("NO File in src to findbugs");
-			return;
+			if (path.endsWith(".java")) {
+//				copyChangedFilesFromLocal(path);
+				SVNUtil.exportSingleFile(path, mFindbugsSrc, revision);
+			} else if (path.endsWith(".jar")) {
+				//jar包有更新，需要更新整个lib包
+				int endIndex = path.lastIndexOf("/");
+				int fromIndex = path.lastIndexOf("/", endIndex - 1);
+				String libPath = path.substring(fromIndex, endIndex);
+				String libsDir = mProjectWorkspace + libPath;
+				if (!new File(libsDir).exists()) {
+					libsDir = mProjectWorkspace + "/lib";
+				}
+				SVNUtil.updateDirTree(libsDir, revision);
+			} else if (path.contains("/res/")) {
+				//需要更新res文件并重新appt
+				String resDir = mProjectWorkspace + "/res";
+				SVNUtil.updateDirTree(resDir, revision);
+			} else if (path.endsWith("AndroidManifest.xml")) {
+				String xmlDir = mProjectWorkspace + "/AndroidManifest.xml";
+				SVNUtil.updateDirTree(xmlDir, revision);
+			}
+				
 		}
 		
+		if (new File(mFindbugsSrc).list().length == 0) {
+			//no file in srcret
+			Logger.println("NO File in src to findbugs");
+			result = false;
+		}
+		return result;
 	}
 	
 	/**

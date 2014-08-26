@@ -340,4 +340,25 @@ public class SVNUtil {
 		}
 	}
   
+	/**
+	 * 更新整个路径或文件
+	 * @param updatePath
+	 * @param revision
+	 */
+	public static void updateDirTree(String updatePath, long revision) {
+		File file = new File(updatePath);
+		if (!file.exists()) {
+			Logger.println("No such file " + updatePath + ", please check your path");
+			return;
+		}
+		
+		try {
+			sClientManager.getUpdateClient().doUpdate(file, SVNRevision.create(revision), SVNDepth.INFINITY, false, false);
+			Logger.println("SVN update folder to " + updatePath + " with revision " + revision);
+		} catch (SVNException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 }  

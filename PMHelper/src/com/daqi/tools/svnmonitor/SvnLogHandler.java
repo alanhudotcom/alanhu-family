@@ -39,7 +39,7 @@ public class SvnLogHandler implements ISVNLogEntryHandler {
 			Logger.println("Last log info is new revision, not need to dump log info");
 			return;
 		}
-		
+		Logger.println("=========Handle Log Entry svn:" + logEntry.getRevision());
 		++mDoLogCount;
 
 		if (mLastLogRevision != logEntry.getRevision()) {

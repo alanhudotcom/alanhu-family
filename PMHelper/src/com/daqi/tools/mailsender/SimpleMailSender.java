@@ -63,7 +63,6 @@ public class SimpleMailSender  {
 				}
 			}
 		}
-		
 		return addresses;
 	}
 	
@@ -109,6 +108,15 @@ public class SimpleMailSender  {
 	
 	public void updateMailToAndCc(String to, String cc) {
 		Address[] receiverAddress = createAddressFromStandardString(to);
+		if (receiverAddress == null) {
+			//如果没有设置收件人，则直接发送给发件人
+			try {
+				receiverAddress = mMailMessage.getFrom();
+			} catch (MessagingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		if (receiverAddress != null) {
 			try {
 				mMailMessage.setRecipients(Message.RecipientType.TO, receiverAddress);

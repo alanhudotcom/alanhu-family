@@ -1,2 +1,2 @@
 #!/bin/sh
-java -jar PMHelper1.0.jar
+java -Xms512m -Xmx512m -Xmn400m -jar PMHelper.jar

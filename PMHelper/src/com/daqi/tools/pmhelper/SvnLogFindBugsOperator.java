@@ -73,33 +73,61 @@ public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
 			return;
 		}
 		
-		//1.拷贝修改的文件
+		//1.导出当前版本修改的文件
 		Set<String> changedPath = logEntry.getChangedPaths().keySet();
 		long revision = logEntry.getRevision();
-		mFindbugsInstance.handleChangedFile(changedPath, revision);
-
-		if (mFindbugsInstance.exeFindBugsShell()) {
-			//执行Findbugs脚本成功，则发送邮件并清理现有
-			sendReport(logEntry);
+		boolean handleFileResult = mFindbugsInstance.handleChangedFile(changedPath, revision);
+		if (handleFileResult) {
+			if (mFindbugsInstance.exeFindBugsShell()) {
+				//执行Findbugs脚本成功，则发送邮件并清理现有
+				sendFindBugsSuccess(logEntry);
+			} else {
+				sendFindBugsFailed(logEntry);
+			}
 		};
 		
 		mFindbugsInstance.clearFindBugsFile();
 	}
 	
-	private void sendReport(SVNLogEntry logEntry) {
+	private void sendFindBugsSuccess(SVNLogEntry logEntry) {
 		String content = mFindbugsInstance.getFindbugsReport();
 		if (content == null) {
 			return;
 		}
-		String to = logEntry.getAuthor() + mMailComAddress;
-		System.out.println("send findbugs to " + logEntry.getAuthor());
+		String to = /*logEntry.getAuthor()*/"huyong" + mMailComAddress;
+		System.out.println("send findbugs to " + to);
 		if (mMailReceivers != null && !mMailReceivers.equals("")) {
 			to += ",";
 			to += mMailReceivers;
 		}
 		mMailSender.updateMailToAndCc(to, mMailCcReceivers);
+		
+		sendReport(logEntry, content);
+	}
+	
+	private void sendFindBugsFailed(SVNLogEntry logEntry) {
+		StringBuilder tmpContent = new StringBuilder(500);
+		tmpContent.append("<p><span style=\"color:#E53333;font-size:24px;\"><strong>FindBugs编译未通过，本次检查无效！！！</strong></span></p>")
+					.append("<p>可能是由于本次修改涉及资源文件或Manifest文件或AIDL或其他依赖关系，")
+					.append( "需要您手动编译一次您的工程项目，才能继续进行FindBugs检查。请查看编译结果后，进行手动更新并编译。</p>");
 
-		StringBuilder tmpBuilder = new StringBuilder(500);
+		mMailSender.updateMailToAndCc(null, mMailCcReceivers);
+		
+		sendReport(logEntry, tmpContent.toString());
+	}
+	
+	private void sendReport(SVNLogEntry logEntry, String content) {
+		
+		// 修改的文件路径
+		Set<String> changedFileSet = logEntry.getChangedPaths().keySet();
+		StringBuilder tmpFileBuilder = new StringBuilder(500);
+		for (String filePath : changedFileSet) {
+			tmpFileBuilder.append("<p><span style=\"font-size:18px;color:#003399;\">")
+							.append(filePath)
+							.append("</span></p>");
+		}
+		
+		StringBuilder tmpBuilder = new StringBuilder(1000);
 		tmpBuilder.append("<p style=\"font-family:Helvetica, 'Microsoft Yahei', verdana;font-size:13.63636302947998px;\">")
 		.append("<span style=\"color:#E53333;font-size:24px;\"><strong>")
 		.append(logEntry.getAuthor())
@@ -108,6 +136,8 @@ public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
 		.append("<span style=\"font-size:18px;color:#003399;\"><strong>")
 		.append(logEntry.getRevision())
 		.append("</strong></span></p>")
+		.append("<p>修改文件：</p>")
+		.append(tmpFileBuilder)
 		.append("<p><span style=\"line-height:1.5;\">FindBugs 结果为：</span> </p>");
 		
 		final String tips = "<hr /><p style=\"font-family:Helvetica, 'Microsoft Yahei', verdana;font-size:13.63636302947998px;\">"

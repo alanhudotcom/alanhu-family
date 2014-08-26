@@ -11,7 +11,6 @@ public class Converter {
 	public static String suppoetTozh(String str) {
 		String result = str;
 		try {
-			System.out.println("encoding = " + System.getProperty("file.encoding"));
 			//转换成中文支持
 			result = new String(str.getBytes("ISO-8859-1"), System.getProperty("file.encoding"));
 		} catch (UnsupportedEncodingException e) {
