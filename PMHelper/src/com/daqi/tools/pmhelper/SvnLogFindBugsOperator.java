@@ -9,6 +9,7 @@ import com.daqi.tools.findbugs.FindBugsInstance;
 import com.daqi.tools.findbugs.FindbugsConfigLoader;
 import com.daqi.tools.mailsender.SimpleMailSender;
 import com.daqi.tools.toolunit.Converter;
+import com.daqi.tools.toolunit.Logger;
 
 
 public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
@@ -18,6 +19,7 @@ public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
 	private FindBugsInstance mFindbugsInstance;
 	
 	private boolean mNotRunFindbugs = true;
+	private String mTestFindBugsReceiver;
 	
 	private String mMailReceivers;
 	private String mMailCcReceivers;
@@ -36,10 +38,12 @@ public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
 		//初始化获取邮件标题；
 		//初始化ant配置信息等；
 		FindbugsConfigLoader configLoader = new FindbugsConfigLoader(configFile);
-		String runFindBugs = configLoader.getProperty(FindbugsConfigLoader.FINDBUG_RUN);
+		String runFindBugs = configLoader.getProperty(FindbugsConfigLoader.FINDBUG_RUN, "true");
 		if (runFindBugs.equals("true")) {
 			mNotRunFindbugs = false;
 		}
+		
+		mTestFindBugsReceiver = configLoader.getProperty(FindbugsConfigLoader.FINDBUG_TEST_MAIL_RECEIVER);
 		 
 		mMailReceivers = configLoader.getProperty(FindbugsConfigLoader.FINDBUG_MAIL_RECEIVERS);
 		mMailCcReceivers = configLoader.getProperty(FindbugsConfigLoader.FINDBUG_MAIL_CCREIVERS);
@@ -94,12 +98,15 @@ public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
 		if (content == null) {
 			return;
 		}
-		String to = /*logEntry.getAuthor()*/"huyong" + mMailComAddress;
-		System.out.println("send findbugs to " + to);
+		String to = logEntry.getAuthor() + mMailComAddress;
+		if (mTestFindBugsReceiver != null && !mTestFindBugsReceiver.equals("")) {
+			to = mTestFindBugsReceiver; 
+		}
 		if (mMailReceivers != null && !mMailReceivers.equals("")) {
 			to += ",";
 			to += mMailReceivers;
 		}
+		Logger.println("send findbugs to " + to);
 		mMailSender.updateMailToAndCc(to, mMailCcReceivers);
 		
 		sendReport(logEntry, content);
