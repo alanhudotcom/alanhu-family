@@ -28,7 +28,7 @@ public class SvnLogChangedObserverByEmail implements ISvnLogChangedObserver{
 		mSvnLogOperators.add(operator);
 
 		//增加Findbugs处理
-		operator = new SvnLogFindBugsOperator(mSimplemailSender, configFile);
+		operator = SvnLogFindBugsOperator.getFindBugsOperator(mSimplemailSender, configFile);
 		mSvnLogOperators.add(operator);
 
 	}

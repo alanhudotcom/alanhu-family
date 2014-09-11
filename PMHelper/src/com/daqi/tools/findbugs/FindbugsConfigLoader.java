@@ -6,6 +6,7 @@ public class FindbugsConfigLoader extends ConfigLoader {
 
 	public static final String FINDBUG_RUN = "findbugs_run";
 	public static final String FINDBUG_KEY_ANT = "findbugs_key_ant_findbugs";
+	public static final String FINDBUG_ROOT_WORKSPACE = "findbug_root_workspace";
 	public static final String FINDBUG_PROJECT_WORKSPACE = "findbug_project_workspace";
 //	public static final String FINDBUG_KEY_SHELL = "findbug_key_shell";
 	public static final String FINDBUG_MAIL_SUBJECT = "findbug_mail_subject";

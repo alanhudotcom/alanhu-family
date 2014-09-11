@@ -73,12 +73,20 @@ public class SvnMonitorInstanse {
 		mSVNLogEntryHandler.doPrepareWork(mConfigLoader);
 	}
 	
-	public void doMonitorWork() {
+	public void doMonitorWork(long revision, String changedUrl) {
+		String svnroot = mConfigLoader.getProperty(SvnConfigLoader.SVN_KEY_ROOT);
+		
+		if (!changedUrl.equals(svnroot)) {
+			//不是当前工作目录，不予更新检查，直接返回。
+			System.out.println("Is not the svn path for monitoring, please check your properties.");
+			return;
+		}
+		
 		//开始前的准备工作
 		doMonitorPrepareWork();
 		
 		//进入监控循环状态
-		enterMonitorLoop();
+		enterMonitorLoop(revision);
 	}
 	
 	/**
@@ -116,27 +124,38 @@ public class SvnMonitorInstanse {
 		
 	}
 	
-	private void enterMonitorLoop() {
+	private void doSvnLog2(long revision) {
+		try {
+			mSvnRepository.log(mSvnTargetPaths, revision-1, revision, true, true, mSVNLogEntryHandler);
+		} catch (SVNException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		Logger.println("Project [" + getProjectName() + "] enter monitor loop for loop " + mSvnPeriodMin + " min");
+	}
+	
+	
+	private void enterMonitorLoop(final long revision) {
 		
 		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				while (true) {
-					try {
-						Thread.sleep(mSvnPeriodMin /** 60*/ * 1000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					Logger.println("== NEW Loop time is out, begin to check log info");
+//				while (true) {
 					reloadDoLogInfo();
-					doSvnLog();
+//					doSvnLog();
+					doSvnLog2(revision);
+
+//					Logger.println("=== Waiting " + mSvnPeriodMin + " min for next loop");
+//					try {
+//						Thread.sleep(mSvnPeriodMin /** 60*/ * 1000);
+//					} catch (InterruptedException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
 					
-				}
+//				}
 				
 			}
 		}, "SVN-monitor-" + getProjectName()).start();

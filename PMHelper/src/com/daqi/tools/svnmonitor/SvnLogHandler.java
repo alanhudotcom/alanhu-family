@@ -34,7 +34,13 @@ public class SvnLogHandler implements ISVNLogEntryHandler {
 	@Override
 	public void handleLogEntry(SVNLogEntry logEntry) throws SVNException {
 		
-		if (mLastLogRevision >= logEntry.getRevision() && mDoLogCount == 0) {
+		Logger.println("handle Log Entry for log = " + logEntry.getRevision());
+		
+		mObserver.notifyLogChanged(logEntry);
+		
+		mObserver.notifyFinish();
+		
+		/*if (mLastLogRevision >= logEntry.getRevision() && mDoLogCount == 0) {
 			//若当前获取到的log版本小于等于最近一次的log版本，且没有以往log信息存在，则不用处理，直接返回。
 			Logger.println("Last log info is new revision, not need to dump log info");
 			return;
@@ -61,7 +67,7 @@ public class SvnLogHandler implements ISVNLogEntryHandler {
 				mConfigLoader.updateProperty(SvnConfigLoader.SVN_STARTVERISON, String.valueOf(mLastLogRevision));
 			}
 			
-		}
+		}*/
 		
 	}
 

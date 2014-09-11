@@ -23,8 +23,8 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil;
 import com.daqi.tools.toolunit.Logger;
   
 /** 
- * SVNKit Utility 
- * @author lena yang 
+ *  
+ * @author huyong 
  * 
  */  
 public class SVNUtil {  
@@ -333,7 +333,7 @@ public class SVNUtil {
 			SVNURL fileUrl = SVNURL.create("http", null, "svn.3g.net.cn", -1, path, false);
 			
 			sClientManager.getUpdateClient().doExport(fileUrl, dstFile, SVNRevision.HEAD, SVNRevision.create(revision), "native", true, SVNDepth.FILES);
-			Logger.println("SVN export file to " + dstPath);
+			Logger.println("SVN export file from " + changedPath + " to " + dstPath);
 		} catch (SVNException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

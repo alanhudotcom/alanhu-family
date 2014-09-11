@@ -47,10 +47,10 @@ public class PMHelperMain {
 		}
 	}
 	
-	private void doWork() {
+	private void doWork(long revision, String changedUrl) {
 		for (SvnMonitorInstanse svnMonitorInstanse : mSvnMontiorList) {
 			Logger.println("3.Project [ " + svnMonitorInstanse.getProjectName() + " ] begin to work");
-			svnMonitorInstanse.doMonitorWork();
+			svnMonitorInstanse.doMonitorWork(revision, changedUrl);
 		}
 	}
 	
@@ -60,7 +60,11 @@ public class PMHelperMain {
 		
 		pmHelper.doCheckConfig();
 		
-		pmHelper.doWork();
+		String svnRevision = args[0];
+		long revision = Long.parseLong(svnRevision);
+		String svnUrl = args[1]; 
+		
+		pmHelper.doWork(revision, svnUrl);
 	}
 	
 }

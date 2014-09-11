@@ -12,8 +12,8 @@ import com.daqi.tools.toolunit.Logger;
 
 public class FindBugsInstance {
 	
-//	private String mRootWorkspace;
-	private String mProjectWorkspace;
+	private String mRootWorkspace;		//根工程目录，也即主工程目录
+	private String mProjectWorkspace;	//当前监控工程目录，仅在更新各工程的资源/lib/manifest等文件时才需要，更新对应文件到对应目录中去即可。
 	private String mFindbugsSrc;
 	private String mFindbugsBin;
 	private String mFindbugsTmpFolder;
@@ -33,12 +33,12 @@ public class FindBugsInstance {
 		//初始化ant配置信息等；
 		FindbugsConfigLoader configLoader = new FindbugsConfigLoader(configFile);
 		mAntFindbugs = configLoader.getProperty(FindbugsConfigLoader.FINDBUG_KEY_ANT);
-		 
+		mRootWorkspace = configLoader.getProperty(FindbugsConfigLoader.FINDBUG_ROOT_WORKSPACE);
 		mProjectWorkspace = configLoader.getProperty(FindbugsConfigLoader.FINDBUG_PROJECT_WORKSPACE);
 	}
 
 	private void initWorkspace() {
-		String rootPath = mProjectWorkspace + "/changedfiles/";
+		String rootPath = mRootWorkspace + "/changedfiles/";
 		mFindbugsSrc = rootPath + "src/";
 		mFindbugsBin = rootPath + "bin/";
 		mFindbugsTmpFolder = rootPath + "findbugs/";
@@ -71,13 +71,16 @@ public class FindBugsInstance {
 	}
 	
 	public void clearFindBugsFile() {
-		//更新本地bin目录下的class文件
-		String tmpChangedBin = mFindbugsBin.substring(0, mFindbugsBin.length() - 1);
-		FileUtils.copyDir(tmpChangedBin, mProjectWorkspace + "/bin/classes");
-		FileUtils.resetDir(mFindbugsSrc);
 		FileUtils.resetDir(mFindbugsBin);
 		FileUtils.resetDir(mFindbugsTmpFolder);
-//		FileUtils.delFile(mFindbugsReports);
+		FileUtils.delFile(mFindbugsReports);
+	}
+	
+	public void backupFindBugsFile() {
+		//更新本地bin目录下的class文件
+		String tmpChangedBin = mFindbugsBin.substring(0, mFindbugsBin.length() - 1);
+		FileUtils.copyDir(tmpChangedBin, mRootWorkspace + "/bin/classes");
+		FileUtils.resetDir(mFindbugsSrc);
 	}
 	
 	public boolean handleChangedFile(Set<String> filePath, long revision) {
@@ -143,7 +146,26 @@ public class FindBugsInstance {
 	}
 	
 	public String getFindbugsReport() {
-		return FileUtils.readFileToString(mFindbugsReports);
+		if (isFindBugsNoBugInstance()) {
+			return null;
+		} else {
+			return FileUtils.readFileToString(mFindbugsReports);
+		}
+	}
+	
+	private boolean isFindBugsNoBugInstance() {
+		//检查是否不存在bug，避免多次发送。
+		boolean result = false;
+		String findbugsOut = mRootWorkspace + "/changedfiles/findbugs/out.xml";
+		String findbugsResult = FileUtils.readFileToString(findbugsOut);
+		if (findbugsResult != null) {
+			if ( !findbugsResult.contains("BugInstance") ) {
+				//不包含任何BugInstance，则说明没有任何bug，不需要发送报告邮件。
+				result = true;
+				Logger.println("========================Findbugs 检查结果为空，不需要发送报告邮件。");
+			}
+		}
+		return result;
 	}
 
 }

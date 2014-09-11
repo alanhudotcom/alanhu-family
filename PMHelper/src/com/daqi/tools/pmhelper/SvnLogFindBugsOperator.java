@@ -26,7 +26,17 @@ public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
 	private String mMailSubject;
 	private String mMailComAddress;
 	
-	public SvnLogFindBugsOperator(SimpleMailSender mailSender, String configFile) {
+	private static SvnLogFindBugsOperator sInstance;
+	private long mHandledLogEntry = 0l;	//处理过的log日志，防止重复处理。
+	
+	public static SvnLogFindBugsOperator getFindBugsOperator(SimpleMailSender mailSender, String configFile) {
+		if (sInstance == null) {
+			sInstance = new SvnLogFindBugsOperator(mailSender, configFile);
+		}
+		return sInstance;
+	}
+	
+	private SvnLogFindBugsOperator(SimpleMailSender mailSender, String configFile) {
 		// TODO Auto-generated constructor stub
 		mMailSender = mailSender;
 		
@@ -63,7 +73,11 @@ public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
 	@Override
 	public void svnLogChanged(SVNLogEntry logEntry) {
 		// TODO Auto-generated method stub
-		logChanged(logEntry);
+		if (mHandledLogEntry != logEntry.getRevision()) {
+			//若是已经处理过的log，则不再处理，避免同一次提交中包含不同分支下的更新，导致多次的findbugs处理。
+			logChanged(logEntry);
+			mHandledLogEntry = logEntry.getRevision();
+		}
 	}
 
 	@Override
@@ -77,6 +91,8 @@ public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
 			return;
 		}
 		
+		mFindbugsInstance.clearFindBugsFile();
+		
 		//1.导出当前版本修改的文件
 		Set<String> changedPath = logEntry.getChangedPaths().keySet();
 		long revision = logEntry.getRevision();
@@ -85,12 +101,12 @@ public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
 			if (mFindbugsInstance.exeFindBugsShell()) {
 				//执行Findbugs脚本成功，则发送邮件并清理现有
 				sendFindBugsSuccess(logEntry);
+				mFindbugsInstance.backupFindBugsFile();
 			} else {
 				sendFindBugsFailed(logEntry);
 			}
 		};
 		
-		mFindbugsInstance.clearFindBugsFile();
 	}
 	
 	private void sendFindBugsSuccess(SVNLogEntry logEntry) {
@@ -118,7 +134,8 @@ public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
 					.append("<p>可能是由于本次修改涉及资源文件或Manifest文件或AIDL或其他依赖关系，")
 					.append( "需要您手动编译一次您的工程项目，才能继续进行FindBugs检查。请查看编译结果后，进行手动更新并编译。</p>");
 
-		mMailSender.updateMailToAndCc(null, mMailCcReceivers);
+		String to = logEntry.getAuthor() + mMailComAddress;
+		mMailSender.updateMailToAndCc(to, mMailCcReceivers);
 		
 		sendReport(logEntry, tmpContent.toString());
 	}

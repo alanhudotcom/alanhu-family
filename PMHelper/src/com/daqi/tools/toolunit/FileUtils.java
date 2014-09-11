@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 
+import com.daqi.tools.pmhelper.PMHelperMain0;
+
 public class FileUtils {
 
 	public static void copyDir(String dirFrom, String dirTo) {
@@ -114,7 +116,12 @@ public class FileUtils {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			String line = null;
+			String hideInfo = "style=\"display: none";   		//隐藏了bug详情信息
+			String showInfo = "style=\"display: table";			//直接展示bug详情信息
 			while((line = br.readLine()) != null){
+				if (line.contains(hideInfo)) {
+					line = line.replace(hideInfo, showInfo);
+				}
 				sb.append(line);
 			}
 			br.close();
@@ -122,6 +129,12 @@ public class FileUtils {
 			// TODO: handle exception
 		}
 		return sb.toString();
+	}
+	
+	public static void main(String[] args) {
+		
+		String str = FileUtils.readFileToString(args[0]);
+		
 	}
 	
 }
