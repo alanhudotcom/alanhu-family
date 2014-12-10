@@ -171,7 +171,9 @@ public class SvnLogFindBugsOperator extends AbsSvnLogOperator {
 		sBuilder.append(tmpBuilder);
 		sBuilder.append(content);
 		sBuilder.append(tips);
-		mMailSender.sendHtmlMail(mMailSubject, sBuilder.toString());
+		
+		String subject = mMailSubject + "-for-svn_" + logEntry.getRevision() + "-by-" + logEntry.getAuthor();  
+		mMailSender.sendHtmlMail(subject, sBuilder.toString());
 	}
 	
 	/*public static void main(String[] args) {

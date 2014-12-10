@@ -7,8 +7,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 
-import com.daqi.tools.pmhelper.PMHelperMain0;
-
 public class FileUtils {
 
 	public static void copyDir(String dirFrom, String dirTo) {
